@@ -16,7 +16,6 @@ function Navbar({ user, onLogout }) {
           <Link to="/">
             <img src={Logo} alt="Ajali Logo" className="h-20 w-25" />
           </Link>
-          {/* Desktop Navigation */}
           <div className="hidden md:flex space-x-6">
             <Link to="/" className="text-white hover:text-gray-200">
               Home
@@ -47,12 +46,8 @@ function Navbar({ user, onLogout }) {
               </>
             )}
           </div>
-          {/* Mobile Hamburger Menu */}
           <div className="md:hidden flex items-center">
-            <button
-              onClick={toggleMenu}
-              className="text-white focus:outline-none"
-            >
+            <button onClick={toggleMenu} className="text-white focus:outline-none">
               <svg
                 className="w-6 h-6"
                 fill="none"
@@ -80,8 +75,6 @@ function Navbar({ user, onLogout }) {
           </div>
         </div>
       </div>
-
-      {/* Mobile Navigation Menu */}
       <div className={`md:hidden ${isOpen ? "block" : "hidden"}`}>
         <div className="px-4 py-2 space-y-2 bg-red-700">
           <Link to="/" className="text-white hover:text-gray-200 block">

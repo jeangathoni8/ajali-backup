@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Route, Routes } from "react-router-dom";
+import { Route, Routes, Navigate } from "react-router-dom";
 import Navbar from "./components/Navbar";
 import Login from "./components/Login";
 import Register from "./components/Register";
@@ -17,29 +17,25 @@ function App() {
 
   return (
     <>
-      {!user ? (
-        <Navbar />
-      ) : (
-        <UserHome user={user} onLogout={handleLogout} />
-      )}
+      <Navbar user={user} onLogout={handleLogout} />
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/incidents" element={<Incidents />} />
         <Route path="/contact" element={<Contact />} />
-        <Route
-          path="/login"
-          element={<Login onLogin={handleLogin} />}
-        />
+        <Route path="/login" element={<Login setUser={handleLogin} />} />
         <Route path="/register" element={<Register />} />
-        {user && (
-          <>
-            <Route path="/user-home" element={<UserHome user={user} />} />
-            <Route
-              path="/report-incident"
-              element={<ReportIncident user={user} />}
-            />
-          </>
-        )}
+        <Route
+          path="/user-home"
+          element={
+            user ? <UserHome user={user} /> : <Navigate to="/login" replace />
+          }
+        />
+        <Route
+          path="/report-incident"
+          element={
+            user ? <ReportIncident user={user} /> : <Navigate to="/login" replace />
+          }
+        />
       </Routes>
     </>
   );

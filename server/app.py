@@ -92,6 +92,28 @@ class UserLoginResource(Resource):
 
             return {
                 'message': 'Login successful',
+                'user': user.to_dict()  # Include user data in the response
+            }, 200
+
+        return {'message': 'Invalid username or password'}, 401
+
+    def post(self):
+        data = request.get_json()
+
+        # Validate required fields
+        if not data.get('username') or not data.get('password'):
+            return {'message': 'Username and password are required'}, 400
+
+        user = User.query.filter_by(username=data['username']).first()
+
+        if user and check_password_hash(user.password_hash, data['password']):
+            # Set session
+            session['user_id'] = user.id
+            session['is_admin'] = user.is_admin
+            session.permanent = True  # Session lasts as per PERMANENT_SESSION_LIFETIME
+
+            return {
+                'message': 'Login successful',
                 'is_admin': user.is_admin
             }, 200
 
