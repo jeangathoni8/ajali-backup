@@ -165,7 +165,7 @@ function Incidents() {
                           key={image.id}
                           src={image.image_url}
                           alt={`Incident ${incident.id}`}
-                          className="w-24 h-24 object-cover border border-gray-300 rounded-md"
+                          className="h-60 w-[100%] object-cover border border-gray-300 rounded-md"
                         />
                       ))}
                     </div>
@@ -184,7 +184,7 @@ function Incidents() {
                           key={video.id}
                           controls
                           src={video.video_url}
-                          className="w-full h-32 border border-gray-300 rounded-md"
+                          className="w-full h-60 border border-gray-300 rounded-md"
                         />
                       ))}
                     </div>
