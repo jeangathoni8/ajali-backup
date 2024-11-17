@@ -42,6 +42,16 @@ def login_required(f):
         return f(*args, **kwargs)
     return decorated
 
+class CheckSession(Resource):
+    def get(self):
+        user_id = session.get('user_id')
+        if user_id:
+            user = User.query.get(user_id)
+            return {'name': user.name, 'id': user.id, 'email': user.email}, 200
+        return {}, 401
+
+api.add_resource(CheckSession, '/check_session')
+
 class UserRegisterResource(Resource):
     def post(self):
         data = request.get_json()
@@ -62,8 +72,7 @@ class UserRegisterResource(Resource):
         new_user = User(
             username=data['username'],
             email=data['email'],
-            password_hash=generate_password_hash(data['password']),
-            is_admin=data.get('is_admin', False)
+            password_hash=generate_password_hash(data['password'])
         )
 
         try:
@@ -87,34 +96,11 @@ class UserLoginResource(Resource):
         if user and check_password_hash(user.password_hash, data['password']):
             # Set session
             session['user_id'] = user.id
-            session['is_admin'] = user.is_admin
             session.permanent = True  # Session lasts as per PERMANENT_SESSION_LIFETIME
 
             return {
                 'message': 'Login successful',
-                'user': user.to_dict()  # Include user data in the response
-            }, 200
-
-        return {'message': 'Invalid username or password'}, 401
-
-    def post(self):
-        data = request.get_json()
-
-        # Validate required fields
-        if not data.get('username') or not data.get('password'):
-            return {'message': 'Username and password are required'}, 400
-
-        user = User.query.filter_by(username=data['username']).first()
-
-        if user and check_password_hash(user.password_hash, data['password']):
-            # Set session
-            session['user_id'] = user.id
-            session['is_admin'] = user.is_admin
-            session.permanent = True  # Session lasts as per PERMANENT_SESSION_LIFETIME
-
-            return {
-                'message': 'Login successful',
-                'is_admin': user.is_admin
+                'user': user.to_dict()
             }, 200
 
         return {'message': 'Invalid username or password'}, 401

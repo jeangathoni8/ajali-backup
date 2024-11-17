@@ -22,18 +22,43 @@ function Register() {
       });
       const data = await response.json();
       if (response.ok) {
-        toast.success(data.message);
-        navigate("/login");
+        toast.success(data.message, {
+          position: "top-center",
+          autoClose: 3000,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: true,
+          draggable: true,
+          progress: undefined,
+        });
+        setTimeout(() => navigate("/login"), 3000); // Wait for toast to display before navigating
       } else {
-        toast.error(data.message);
+        toast.error(data.message, {
+          position: "top-center",
+          autoClose: 3000,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: true,
+          draggable: true,
+          progress: undefined,
+        });
       }
     } catch (error) {
-      toast.error("Something went wrong!");
+      toast.error("Something went wrong!", {
+        position: "top-center",
+        autoClose: 3000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+        progress: undefined,
+      });
     }
   };
 
   return (
     <div className="min-h-screen bg-gray-100 flex items-center justify-center">
+      {/* Ensure ToastContainer is placed here */}
       <ToastContainer />
       <form onSubmit={handleSubmit} className="bg-white p-6 rounded shadow-md">
         <h2 className="text-2xl font-bold mb-4">Register</h2>
