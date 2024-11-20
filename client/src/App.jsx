@@ -1,43 +1,57 @@
-import React, { useState } from "react";
-import { Route, Routes, Navigate } from "react-router-dom";
-import Navbar from "./components/Navbar";
-import Login from "./components/Login";
-import Register from "./components/Register";
-import UserHome from "./components/UserHome";
-import ReportIncident from "./components/ReportIncident";
-import Home from "./components/Home";
-import Incidents from "./components/Incidents";
-import Contact from "./components/Contact";
+import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
+import Layout from './components/Layout';
+import ContactPage from './pages/ContactPage';
+import CreateIncident from './pages/CreateIncident';
+import HomePage from './pages/HomePage';
+import LandingPage from './pages/LandingPage';
+import Login from './pages/Login';
+import ManageIncidents from './pages/ManageIncidents';
+import MyProfile from './pages/MyProfile';
+import Notifications from './pages/Notifications';
+import Settings from './pages/Settings';
 
 function App() {
-  const [user, setUser] = useState(null);
-
-  const handleLogin = (userData) => setUser(userData);
-  const handleLogout = () => setUser(null);
-
   return (
-    <>
-      <Navbar user={user} onLogout={handleLogout} />
+    <Router>
       <Routes>
-        <Route path="/" element={<Home />} />
-        <Route path="/incidents" element={<Incidents />} />
-        <Route path="/contact" element={<Contact />} />
-        <Route path="/login" element={<Login setUser={handleLogin} />} />
-        <Route path="/register" element={<Register />} />
-        <Route
-          path="/user-home"
-          element={
-            user ? <UserHome user={user} /> : <Navigate to="/login" replace />
-          }
-        />
-        <Route
-          path="/report-incident"
-          element={
-            user ? <ReportIncident user={user} /> : <Navigate to="/login" replace />
-          }
-        />
+        {/* Public routes */}
+        <Route path="/" element={<LandingPage />} />
+        <Route path="/login" element={<Login />} />
+        <Route path="/contact" element={<ContactPage />} />
+
+        {/* Previously protected routes, now public */}
+        <Route path="/home" element={
+          <Layout>
+            <HomePage />
+          </Layout>
+        } />
+        <Route path="/create-incident" element={
+          <Layout>
+            <CreateIncident />
+          </Layout>
+        } />
+        <Route path="/manage-incidents" element={
+          <Layout>
+            <ManageIncidents />
+          </Layout>
+        } />
+        <Route path="/profile" element={
+          <Layout>
+            <MyProfile />
+          </Layout>
+        } />
+        <Route path="/notifications" element={
+          <Layout>
+            <Notifications />
+          </Layout>
+        } />
+        <Route path="/settings" element={
+          <Layout>
+            <Settings />
+          </Layout>
+        } />
       </Routes>
-    </>
+    </Router>
   );
 }
 

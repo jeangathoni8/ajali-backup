@@ -10,10 +10,14 @@ from models.incident_video import IncidentVideo
 from werkzeug.security import generate_password_hash, check_password_hash
 from functools import wraps
 from datetime import timedelta
+import cloudinary
+import cloudinary.uploader
+import cloudinary.api
+import time
 
 # Create Flask app and API
 app = Flask(__name__)
-CORS(app, supports_credentials=True, origins=["http://localhost:5173", "http://localhost:5174"])
+CORS(app, resources={r"/*": {"origins": ["http://localhost:5173", "http://localhost:5174"]}}, supports_credentials=True)
 api = Api(app)
 
 # Load configuration settings
@@ -27,6 +31,13 @@ app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(days=1)  # Session lasts 1 
 db.init_app(app)
 migrate = Migrate(app, db)
 
+# Configure Cloudinary with your credentials
+cloudinary.config(
+    cloud_name='dx9txi9b8',
+    api_key='953811243726843',
+    api_secret='gudyAGgHnNZ1Dc3bd0n0OaxNIPQ',
+    secure=True
+)
 
 # ---------------- Session Helper Functions ----------------
 def login_required(f):
@@ -42,6 +53,22 @@ def login_required(f):
         return f(*args, **kwargs)
     return decorated
 
+@app.route('/generate_upload_signature', methods=['GET'])
+@login_required
+def generate_upload_signature():
+    # Generate a signature for the upload
+    timestamp = int(time.time())
+    signature = cloudinary.utils.api_sign_request(
+        {'timestamp': timestamp, 'upload_preset': 'ajali-default'},
+        cloudinary.config().api_secret
+    )
+    return jsonify({
+        'signature': signature,
+        'timestamp': timestamp,
+        'api_key': cloudinary.config().api_key,
+        'cloud_name': cloudinary.config().cloud_name
+    })
+    
 class CheckSession(Resource):
     def get(self):
         user_id = session.get('user_id')
@@ -55,6 +82,7 @@ api.add_resource(CheckSession, '/check_session')
 class UserRegisterResource(Resource):
     def post(self):
         data = request.get_json()
+        print('Received registration data:', data)  # Debugging log
 
         # Validate required fields
         required_fields = ['username', 'email', 'password']
@@ -86,24 +114,27 @@ class UserRegisterResource(Resource):
 class UserLoginResource(Resource):
     def post(self):
         data = request.get_json()
+        print('Received login data:', data)  # Debugging log
 
         # Validate required fields
-        if not data.get('username') or not data.get('password'):
-            return {'message': 'Username and password are required'}, 400
+        if not data.get('email') or not data.get('password'):
+            return {'message': 'Email and password are required'}, 400
 
-        user = User.query.filter_by(username=data['username']).first()
+        user = User.query.filter_by(email=data['email']).first()
 
         if user and check_password_hash(user.password_hash, data['password']):
             # Set session
-            session['user_id'] = user.id
+            session['is_authenticated'] = True
+            session['user_email'] = user.email
             session.permanent = True  # Session lasts as per PERMANENT_SESSION_LIFETIME
+            print('Session set for user_email:', session['user_email'])  # Debugging log
 
             return {
                 'message': 'Login successful',
                 'user': user.to_dict()
             }, 200
 
-        return {'message': 'Invalid username or password'}, 401
+        return {'message': 'Invalid email or password'}, 401
 
 class UserLogoutResource(Resource):
     def post(self):
@@ -113,13 +144,9 @@ class UserLogoutResource(Resource):
 # ---------------- Incident Resources ----------------
 class IncidentListResource(Resource):
     @login_required
-    def get(self):
-        incidents = IncidentReport.query.all()
-        return jsonify([incident.to_dict() for incident in incidents])
-
-    @login_required
     def post(self):
-        data = request.get_json()
+        data = request.form  # Use form data to get the media URLs
+        print('Received incident data:', data)  # Debugging log
 
         # Validate required fields
         required_fields = ['description', 'latitude', 'longitude']
@@ -138,6 +165,18 @@ class IncidentListResource(Resource):
 
         try:
             db.session.add(new_incident)
+            db.session.commit()
+
+            # Store media URLs
+            media_urls = request.form.getlist('media_urls')
+            for url in media_urls:
+                if url.endswith(('jpg', 'jpeg', 'png', 'gif')):
+                    new_image = IncidentImage(report_id=new_incident.id, image_url=url)
+                    db.session.add(new_image)
+                elif url.endswith(('mp4', 'avi', 'mov')):
+                    new_video = IncidentVideo(report_id=new_incident.id, video_url=url)
+                    db.session.add(new_video)
+
             db.session.commit()
             return {'message': 'Incident created successfully'}, 201
         except Exception as e:

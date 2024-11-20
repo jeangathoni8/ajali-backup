@@ -1,114 +1,130 @@
-import React, { useState } from "react";
-import { Link } from "react-router-dom";
-import Logo from "../assets/ajali.png";
+import { Link } from 'react-router-dom';
+import { AlertTriangle, Menu, X } from 'lucide-react';
+import { useState, useEffect } from 'react';
 
-function Navbar({ user, onLogout }) {
+const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
 
-  const toggleMenu = () => {
-    setIsOpen(!isOpen);
+  const navItems = [
+    { label: 'Home', path: '/', type: 'route' },
+    { label: 'Recent Incidents', path: 'incidents', type: 'scroll' },
+    { label: 'About', path: 'about', type: 'scroll' },
+    { label: 'Contact', path: '/contact', type: 'route' }
+  ];
+
+  const handleNavClick = (item, e) => {
+    if (item.type === 'scroll') {
+      e.preventDefault();
+      const element = document.getElementById(item.path);
+      if (element) {
+        element.scrollIntoView({ behavior: 'smooth' });
+      }
+    }
+    setIsOpen(false);
+  };
+
+  // Close mobile menu when route changes
+  useEffect(() => {
+    setIsOpen(false);
+  }, []);
+
+  const renderNavLink = (item) => {
+    if (item.type === 'route') {
+      return (
+        <Link
+          key={item.label}
+          to={item.path}
+          className="text-gray-700 hover:text-primary-600 px-3 py-2 rounded-md text-sm font-medium transition-colors"
+          onClick={() => setIsOpen(false)}
+        >
+          {item.label}
+        </Link>
+      );
+    }
+
+    return (
+      <a
+        key={item.label}
+        href={`#${item.path}`}
+        className="text-gray-700 hover:text-primary-600 px-3 py-2 rounded-md text-sm font-medium transition-colors cursor-pointer"
+        onClick={(e) => handleNavClick(item, e)}
+      >
+        {item.label}
+      </a>
+    );
   };
 
   return (
-    <nav className="bg-red-700 sticky top-0 z-50 shadow-lg">
-      <div className="max-w-screen-xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between h-20">
-          <Link to="/">
-            <img src={Logo} alt="Ajali Logo" className="h-20 w-25" />
-          </Link>
-          <div className="hidden md:flex space-x-6">
-            <Link to="/" className="text-white hover:text-gray-200">
-              Home
+    <nav className="bg-white shadow-md fixed w-full z-50">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="flex justify-between h-16">
+          <div className="flex items-center">
+            <Link to="/" className="flex items-center space-x-2">
+              <AlertTriangle className="h-8 w-8 text-primary-600" />
+              <span className="font-bold text-xl text-gray-900">Ajali!</span>
             </Link>
-            <Link to="/incidents" className="text-white hover:text-gray-200">
-              Incidents
-            </Link>
-            <Link to="/contact" className="text-white hover:text-gray-200">
-              Contact
-            </Link>
-            {user ? (
-              <>
-                <Link to="/user-home" className="text-white hover:text-gray-200">
-                  User Home
-                </Link>
-                <button onClick={onLogout} className="text-white hover:text-gray-200">
-                  Logout
-                </button>
-              </>
-            ) : (
-              <>
-                <Link to="/register" className="text-white hover:text-gray-200">
-                  Register
-                </Link>
-                <Link to="/login" className="text-white hover:text-gray-200">
-                  Login
-                </Link>
-              </>
-            )}
           </div>
+
+          {/* Desktop Navigation */}
+          <div className="hidden md:flex items-center space-x-8">
+            {navItems.map(renderNavLink)}
+            <Link
+              to="/login"
+              className="bg-primary-600 text-white px-4 py-2 rounded-lg hover:bg-primary-700 transition-colors"
+            >
+              Sign In
+            </Link>
+          </div>
+
+          {/* Mobile menu button */}
           <div className="md:hidden flex items-center">
-            <button onClick={toggleMenu} className="text-white focus:outline-none">
-              <svg
-                className="w-6 h-6"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-                xmlns="http://www.w3.org/2000/svg"
-              >
-                {isOpen ? (
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth="2"
-                    d="M6 18L18 6M6 6l12 12"
-                  />
-                ) : (
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth="2"
-                    d="M4 6h16M4 12h16M4 18h16"
-                  />
-                )}
-              </svg>
+            <button
+              onClick={() => setIsOpen(!isOpen)}
+              className="text-gray-700 hover:text-primary-600"
+            >
+              {isOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
             </button>
           </div>
         </div>
       </div>
-      <div className={`md:hidden ${isOpen ? "block" : "hidden"}`}>
-        <div className="px-4 py-2 space-y-2 bg-red-700">
-          <Link to="/" className="text-white hover:text-gray-200 block">
-            Home
-          </Link>
-          <Link to="/incidents" className="text-white hover:text-gray-200 block">
-            Incidents
-          </Link>
-          <Link to="/contact" className="text-white hover:text-gray-200 block">
-            Contact
-          </Link>
-          {user ? (
-            <>
-              <Link to="/user-home" className="text-white hover:text-gray-200 block">
-                User Home
-              </Link>
-              <button onClick={onLogout} className="text-white hover:text-gray-200 block">
-                Logout
-              </button>
-            </>
-          ) : (
-            <>
-              <Link to="/register" className="text-white hover:text-gray-200 block">
-                Register
-              </Link>
-              <Link to="/login" className="text-white hover:text-gray-200 block">
-                Login
-              </Link>
-            </>
-          )}
+
+      {/* Mobile Navigation */}
+      {isOpen && (
+        <div className="md:hidden bg-white border-t">
+          <div className="px-2 pt-2 pb-3 space-y-1">
+            {navItems.map((item) => (
+              item.type === 'route' ? (
+                <Link
+                  key={item.label}
+                  to={item.path}
+                  className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-primary-600 hover:bg-primary-50"
+                  onClick={() => setIsOpen(false)}
+                >
+                  {item.label}
+                </Link>
+              ) : (
+                <a
+                  key={item.label}
+                  href={`#${item.path}`}
+                  className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-primary-600 hover:bg-primary-50"
+                  onClick={(e) => handleNavClick(item, e)}
+                >
+                  {item.label}
+                </a>
+              )
+            ))}
+            <Link
+              to="/login"
+              className="block px-3 py-2 rounded-md text-base font-medium bg-primary-600 text-white hover:bg-primary-700"
+              onClick={() => setIsOpen(false)}
+            >
+              Sign In
+            </Link>
+          </div>
         </div>
-      </div>
+      )}
     </nav>
   );
-}
+};
 
 export default Navbar;
